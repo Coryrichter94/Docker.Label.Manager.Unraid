@@ -40,7 +40,7 @@ sed "$sed_prefix" 's/<!ENTITY version ".*">/<!ENTITY version "'"$version"'">/' $
 sed "$sed_prefix" 's/<!ENTITY md5 ".*">/<!ENTITY md5 "'"$md5hash"'">/' $plugin_name.plg
 
 echo "MD5: $(md5sum "$filename")"
-echo "once pushed install via https://raw.githubusercontent.com/phyzical/$plugin_name/main/$plugin_name.plg"
+echo "once pushed install via https://raw.githubusercontent.com/Coryrichter94/Unraid-docker-labels-/unraid-7-2-updates-11470694000344569938/$plugin_name.plg"
 
 $tar_command -tvf "$filename"
 

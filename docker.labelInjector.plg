@@ -1,18 +1,20 @@
 <?xml version="1.0" standalone="yes"?>
 <!DOCTYPE PLUGIN [
     <!ENTITY name "docker.labelInjector">
-<!ENTITY author "phyzical">
-<!ENTITY github "&author;/&name;">
+<!ENTITY author "Coryrichter94">
+<!ENTITY repo "Unraid-docker-labels-">
+<!ENTITY branch "unraid-7-2-updates-11470694000344569938">
+<!ENTITY github "&author;/&repo;">
 <!ENTITY launch "Settings/LabelInjector">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/&name;.plg">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/&branch;/&name;.plg">
 <!ENTITY version "2026.03.13">
 <!ENTITY md5 "3a06be5b702cdd7838e3a06986723e76">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="7.2.0">
     <CHANGES>
-###2025.03.13
+###2026.03.13
 - Fix dark mode styling issues in Unraid 7.2.4
 - Added default auto-injected presets for NPM Plus, Homepage, and AutoKuma
 - Added new variables: `${CONTAINER_NAME_LOWER}` and `${CONTAINER_PORT}`
@@ -30,7 +32,7 @@
 ###2024.10.29
 !!!! BREAKING CHANGE !!!!
 - Changed the way the default labels are stored. 
-- If any of your exisiting default labels use ` -> " Going forward these must be escaped \` -> "
+- If any of your exisiting default labels use a backtick, going forward these must be escaped.
 
 ###2024.10.05
 - Fix visibility of changes in the summary when dark mode
@@ -72,7 +74,7 @@
 
     <!-- New source file -->
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.github.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.github.com/&github;/&branch;/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 
