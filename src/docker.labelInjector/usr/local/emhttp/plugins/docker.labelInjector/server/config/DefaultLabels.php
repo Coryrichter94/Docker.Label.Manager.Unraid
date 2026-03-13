@@ -68,44 +68,50 @@ class DefaultLabels
     static function generateForm(): void
     {
         $message = self::formSubmit();
-        echo <<<HTML
-                <h2>Default Labels</h2>
-                <p>Labels to be prefilled when using the add labels button</p>
-                <p>Type and press enter to save a label, separate label from value via '='</p>
-                <p>Empty values are valid to allow for easy filling</p>
-            HTML;
 
-        echo " <p>To use quotes in an options use an escaped backtick " . self::QUOTE_REPLACER . " Otherwise the option fails to save</p>";
         echo <<<HTML
+            <div style="max-width: 800px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #ff8c00; font-weight: bold; border-bottom: 1px solid #444; padding-bottom: 10px; margin-bottom: 20px;">Default Auto-Inject Presets</h2>
 
-                <p>The following special values are available:</p>
-                <ul>
-                    <li>\${CONTAINER_NAME} - i.e 'LABEL_A=\${CONTAINER_NAME}.domain.com' -> 'LABEL_A=container_A.domain.com'</li>
-                    <li>\${CONTAINER_NAME_LOWER} - Lowercase container name</li>
-                    <li>\${CONTAINER_PORT} - Primary internal port</li>
-                </ul>
-                <div>
-                    <form id="default-label-form" method="post" action="">
-                        <label for="labels">Labels</label>
-                        <select multiple type="text" id="labels" name="labels[]" >
-            HTML;
+                <div class="label-injector-notes" style="text-align: left; background-color: var(--bg-color, #2a2a2a); border: 1px solid var(--border-color, #444); border-radius: 8px; padding: 15px 20px; margin-bottom: 20px; color: var(--text-color, #ddd);">
+                    <h3 style="margin-top: 0; color: #ff8c00; font-size: 1.1em; font-weight: bold;">Configuration Notes</h3>
+                    <ul class="list" style="list-style-type: disc; margin: 0 0 15px 20px; padding: 0;">
+                        <li>These labels will be available as out-of-the-box presets when using the "Add Labels" UI.</li>
+                        <li>Type and press <strong>Enter</strong> to save a new preset label.</li>
+                        <li>Separate label from value via <code>=</code> (e.g. <code>MY_LABEL=VALUE</code>). Empty values are valid.</li>
+                        <li>To use quotes, you must use an escaped backtick (<code>\</code>`<code></code>).</li>
+                    </ul>
+
+                    <h3 style="margin-top: 15px; color: #ff8c00; font-size: 1.1em; font-weight: bold;">Available Dynamic Variables</h3>
+                    <ul class="list" style="list-style-type: disc; margin: 0 0 0 20px; padding: 0;">
+                        <li><code>\${CONTAINER_NAME}</code> - i.e. <i>'LABEL_A=\${CONTAINER_NAME}.domain.com' -> 'LABEL_A=container_A.domain.com'</i></li>
+                        <li><code>\${CONTAINER_NAME_LOWER}</code> - Lowercase container name</li>
+                        <li><code>\${CONTAINER_PORT}</code> - Auto-detected primary internal port</li>
+                    </ul>
+                </div>
+
+                <form id="default-label-form" method="post" action="" style="margin-top: 20px;">
+                    <div style="margin-bottom: 15px;">
+                        <label for="labels" style="display: block; font-weight: bold; margin-bottom: 8px; color: var(--text-color, #eee);">Active Presets</label>
+                        <select multiple type="text" id="labels" name="labels[]" class="label-injector-select" style="width: 100%;">
+        HTML;
 
         $labels = self::getDefaultLabels();
-
         foreach ($labels as $label) {
             echo "<option selected value='$label'>$label</option>";
         }
 
         echo <<<HTML
                         </select>
-                        <button type="submit">Save Labels</button>
-                    </form>
-            HTML;
-        // Display the message if set
+                    </div>
+                    <button type="submit" style="background-color: #ff8c00; color: #fff; border: none; padding: 8px 16px; font-weight: bold; border-radius: 4px; cursor: pointer;">Save Presets</button>
+                </form>
+        HTML;
+
         if (isset($message)) {
-            echo "<p>$message</p>";
+            echo "<p style='margin-top: 15px; padding: 10px; background-color: #dff0d8; color: #3c763d; border: 1px solid #d6e9c6; border-radius: 4px;'>$message</p>";
         }
-        echo "</div><hr>";
+        echo "</div>";
     }
 }
 

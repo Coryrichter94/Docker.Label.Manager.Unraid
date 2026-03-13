@@ -148,30 +148,31 @@ function addLabels() {
 function labelForm() {
     $('#label-injector-form').html(`
         <form id="label-injector-form" class="label-injector-form">
-            <div class="label-injector-form-group">
+            <div class="label-injector-form-group clearfix">
                 <p>Choose containers to add labels to</p>
                 <select id="label-injector-containers" name="containers" class="label-injector-select" multiple id="label-injector-containers" required></select>
-                <button id="remove-all-label-injector-containers">Remove All</button>
+                <button type="button" class="btn-remove-all" id="remove-all-label-injector-containers">Remove All Selected</button>
             </div>
-            <div class="label-injector-form-group">
-                <div class="label-injector-notes">
-                    <h3> Note:</h3>
-                    <ul class="list">
-                        <li>Type and press enter to save a label, separate label from value via '='</li>
-                        <li>When empty values are provided the label will be removed or ignored if not found</li>
-                        <li>Existing tags will be replaced</li>
-                        <li>Spaces will be replaced with a -</li>
-                        <li>To use quotes in an options use and escaped backtick \\\` Otherwise the option fails to save</li>
-                    </ul>
-                    <h3>The following special values are available replacement of values or keys:</h3>
-                    <ul class="list">
-                        <li>\${CONTAINER_NAME} - i.e 'LABEL_A=\${CONTAINER_NAME}.domain.com' -> 'LABEL_A=container_A.domain.com'</li>
-                        <li>\${CONTAINER_NAME_LOWER} - Lowercase container name</li>
-                        <li>\${CONTAINER_PORT} - Primary internal port</li>
-                    </ul>
-                </div>
+            <div class="label-injector-notes">
+                <h3>Notes & Special Values</h3>
+                <ul class="list">
+                    <li>Type and press enter to save a label. Separate label from value via '='</li>
+                    <li>Empty values will remove the label (or ignore it if not found)</li>
+                    <li>Existing tags will be replaced</li>
+                    <li>Spaces will be replaced with a '-'</li>
+                    <li>To use quotes in an option, use an escaped backtick (\\\`). Otherwise the option fails to save</li>
+                </ul>
+                <h3 style="margin-top: 10px;">Available Variables:</h3>
+                <ul class="list">
+                    <li><code>\${CONTAINER_NAME}</code> - i.e. <i>'LABEL_A=\${CONTAINER_NAME}.domain.com' -> 'LABEL_A=container_A.domain.com'</i></li>
+                    <li><code>\${CONTAINER_NAME_LOWER}</code> - Lowercase container name</li>
+                    <li><code>\${CONTAINER_PORT}</code> - Primary internal port</li>
+                </ul>
+            </div>
+            <div class="label-injector-form-group clearfix">
+                <p>Labels to Inject</p>
                 <select id="label-injector-labels" name="labels" class="label-injector-select" multiple required ></select>
-                <button id="remove-all-label-injector-labels">Remove All</button>
+                <button type="button" class="btn-remove-all" id="remove-all-label-injector-labels">Remove All Labels</button>
             </div>
         </form>
         `)

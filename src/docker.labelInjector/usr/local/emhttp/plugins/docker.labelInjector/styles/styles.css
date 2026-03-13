@@ -27,52 +27,137 @@
     width: 1px !important;
 }
 
-/* Ensure choices items inherit the dark/light mode text color correctly */
-.choices__item {
-    color: inherit;
+/* Sleek Choices UI Overhaul */
+.choices__inner {
+    background-color: var(--bg-color, #232323);
+    border: 1px solid var(--border-color, #444);
+    border-radius: 6px;
+    padding: 6px 10px;
+    min-height: 44px;
+    color: var(--text-color, #e0e0e0);
 }
-.choices__list--dropdown .choices__item {
-    color: #1a1a1a;
+.choices__input {
+    background-color: transparent !important;
+    color: var(--text-color, #e0e0e0) !important;
 }
 .choices__list--dropdown {
-    background-color: #fff; /* Keep dropdown white so text is legible in 7.2.4 */
+    background-color: var(--bg-color, #2a2a2a);
+    border: 1px solid var(--border-color, #444);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    z-index: 9999;
 }
-.choices__inner {
-    background-color: var(--bg-color, #fff);
-    border: 1px solid var(--border-color, #ccc);
+.choices__list--dropdown .choices__item {
+    color: var(--text-color, #e0e0e0);
+    padding: 8px 12px;
+}
+.choices__list--dropdown .choices__item--selectable.is-highlighted {
+    background-color: #ff8c00; /* Unraid native accent orange */
+    color: #fff;
+}
+.choices__list--multiple .choices__item {
+    background-color: #ff8c00; /* Accent color for selected pills */
+    border: 1px solid #cc7000;
+    color: #fff;
+    border-radius: 4px;
+    padding: 3px 8px;
+}
+.choices__item.is-highlighted {
+    background-color: #cc7000 !important;
+}
+.choices[data-type*="select-multiple"] .choices__button {
+    border-left: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .label-injector-notes {
     display: flex;
     flex-direction: column;
+    text-align: left !important;
+    background-color: var(--bg-color, #2a2a2a);
+    border: 1px solid var(--border-color, #444);
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    color: var(--text-color, #ddd);
+}
+.label-injector-notes h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #ff8c00;
+}
+.label-injector-notes ul.list {
+    list-style-type: disc;
+    margin: 0 0 15px 20px;
+    padding: 0;
+    text-align: left;
+    display: block;
+}
+.label-injector-notes ul.list li {
+    margin-bottom: 6px;
+    line-height: 1.4;
+    text-align: left;
 }
 
-#label-injector-form ul {
-    list-style-type: disc; /* Remove default list styling */
-    padding: 0; /* Remove default padding */
-    text-align: center; /* Center the text */
-    flex-direction: column;
-    display: flex;
-    margin-left: 40%;
-    align-items: flex-start;
+.label-injector-form-group {
+    margin-bottom: 20px;
 }
-
-#label-injector-form ul li {
-    margin: 0 10px; /* Add some margin between items */
-    width: auto; /* Ensure items do not take up the maximum width */
+.label-injector-form-group p {
+    text-align: left !important;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: var(--text-color, #eee);
+}
+.btn-remove-all {
+    margin-top: 8px;
+    float: right;
+    background-color: #d9534f;
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+.btn-remove-all:hover {
+    background-color: #c9302c;
+}
+.clearfix::after {
+    content: "";
+    clear: both;
+    display: table;
 }
 
 .docker-label-updates {
     overflow-y: scroll; 
-    height:400px; 
-    border: 2px solid #000; 
-    padding: 10px;
-    border-radius: 5px;
+    height: 400px;
+    border: 1px solid var(--border-color, #444);
+    background-color: var(--bg-color, #1a1a1a);
+    padding: 15px;
+    border-radius: 8px;
     max-width: 100%; 
     white-space: pre-wrap; 
     word-wrap: break-word; 
+    text-align: left;
+    font-family: monospace;
+    font-size: 13px;
+    color: var(--text-color, #ddd);
 }
 
 .docker-label-updates * {
     color: inherit !important;
+}
+
+.docker-label-updates h3 {
+    margin-top: 15px;
+    margin-bottom: 5px;
+    color: #ff8c00 !important;
+    font-size: 1.1em;
+    font-weight: bold;
+}
+.docker-label-updates p {
+    margin: 4px 0;
+    line-height: 1.4;
+    text-align: left !important;
 }
