@@ -1,6 +1,69 @@
 $(document).ready(function () {
     $("#docker_containers").after('<input type="button" onclick="labelFormPopup()" value="Add Labels" style="">')
+    $("#docker_containers").after('<input type="button" onclick="undoLabelsPopup()" value="Undo / Restore" style="margin-left:10px;">')
 })
+
+function undoLabelsPopup() {
+    // Fetch list of backups first to avoid async UI updates in swal
+    $('div.spinner.fixed').show();
+    $.post("/plugins/docker.labelInjector/server/service/UndoLabels.php", { data: JSON.stringify({ action: 'list' }) }, function (res) {
+        $('div.spinner.fixed').hide();
+        let backupsHtml = `
+            <div class="label-injector-form-group" style="text-align:left;">
+                <p>Select a previous configuration backup to restore.</p>
+                <select id="label-injector-backups" class="label-injector-select" style="width:100%; padding:5px; color:black;">
+                    <option value="">-- Select a Backup --</option>
+        `;
+        try {
+            let data = JSON.parse(res);
+            if (data.backups && data.backups.length > 0) {
+                data.backups.forEach(b => {
+                    let date = new Date(b.date * 1000).toLocaleString();
+                    backupsHtml += `<option value="${b.file}">${b.container} - ${date}</option>`;
+                });
+            } else {
+                backupsHtml += `<option value="" disabled>No backups found</option>`;
+            }
+        } catch(e) {
+            backupsHtml += `<option value="" disabled>Error loading backups list</option>`;
+        }
+        backupsHtml += `</select></div>`;
+
+        swal({
+            title: "Restore Labels Backup",
+            text: backupsHtml,
+            html: true,
+            showCancelButton: true,
+            closeOnConfirm: false,
+            closeOnCancel: false,
+            allowOutsideClick: true
+        }, function (isConfirm) {
+            if (isConfirm) {
+                const selectedBackup = $('#label-injector-backups').val();
+                if (selectedBackup && selectedBackup !== '') {
+                    $('div.spinner.fixed').show();
+                    $.post("/plugins/docker.labelInjector/server/service/UndoLabels.php", { data: JSON.stringify({ action: 'restore', file: selectedBackup }) }, function (resRestore) {
+                        $('div.spinner.fixed').hide();
+                        try {
+                            let dataRestore = JSON.parse(resRestore);
+                            if (dataRestore.success) {
+                                swal("Success!", "Backup restored successfully.", "success");
+                            } else {
+                                swal("Error", dataRestore.message || "Failed to restore backup", "error");
+                            }
+                        } catch (e) {
+                            swal("Error", "Invalid response from server", "error");
+                        }
+                    });
+                } else {
+                    swal("Warning", "No backup selected", "warning");
+                }
+            } else {
+                swal.close();
+            }
+        });
+    });
+}
 
 function labelFormPopup() {
     swal({
@@ -102,7 +165,9 @@ function labelForm() {
                     </ul>
                     <h3>The following special values are available replacement of values or keys:</h3>
                     <ul class="list">
-                        <li>\${CONTAINER_NAME} - i.e 'LABEL_A=\${CONTAINER_NAME}.domain.com' -> 'LABEL_A=container_a.domain.com'</li>
+                        <li>\${CONTAINER_NAME} - i.e 'LABEL_A=\${CONTAINER_NAME}.domain.com' -> 'LABEL_A=container_A.domain.com'</li>
+                        <li>\${CONTAINER_NAME_LOWER} - Lowercase container name</li>
+                        <li>\${CONTAINER_PORT} - Primary internal port</li>
                     </ul>
                 </div>
                 <select id="label-injector-labels" name="labels" class="label-injector-select" multiple required ></select>

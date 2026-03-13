@@ -33,17 +33,32 @@ class DefaultLabels
      */
     static function getDefaultLabels(): array
     {
+        // Out of the box default presets
+        $defaults = [
+            'npm.proxy.host=${CONTAINER_NAME_LOWER}.ranch',
+            'npm.proxy.port=${CONTAINER_PORT}',
+            'homepage.group=Media',
+            'homepage.name=${CONTAINER_NAME}',
+            'homepage.icon=${CONTAINER_NAME_LOWER}.png',
+            'homepage.href=http://${CONTAINER_NAME_LOWER}.ranch',
+            'kuma.${CONTAINER_NAME_LOWER}.http.name=${CONTAINER_NAME}',
+            'kuma.${CONTAINER_NAME_LOWER}.http.url=http://${CONTAINER_NAME_LOWER}.ranch'
+        ];
+
         $json = "";
         if (file_exists(self::LABELS_PATH)) {
             $json = file_get_contents(self::LABELS_PATH);
         }
         if (!$json || empty($json)) {
-            return [];
+            return $defaults;
         }
 
-        return array_map(function ($item) {
+        $userLabels = array_map(function ($item) {
             return str_replace('"', self::QUOTE_REPLACER, $item);
         }, json_decode($json)->labels);
+
+        // Merge defaults with user's custom labels
+        return array_values(array_unique(array_merge($defaults, $userLabels)));
     }
 
     /**
@@ -65,7 +80,9 @@ class DefaultLabels
 
                 <p>The following special values are available:</p>
                 <ul>
-                    <li>\${CONTAINER_NAME} - i.e 'LABEL_A=\${CONTAINER_NAME}.domain.com' -> 'LABEL_A=container_a.domain.com'</li>
+                    <li>\${CONTAINER_NAME} - i.e 'LABEL_A=\${CONTAINER_NAME}.domain.com' -> 'LABEL_A=container_A.domain.com'</li>
+                    <li>\${CONTAINER_NAME_LOWER} - Lowercase container name</li>
+                    <li>\${CONTAINER_PORT} - Primary internal port</li>
                 </ul>
                 <div>
                     <form id="default-label-form" method="post" action="">

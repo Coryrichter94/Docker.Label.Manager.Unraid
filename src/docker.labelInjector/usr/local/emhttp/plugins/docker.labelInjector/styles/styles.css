@@ -27,8 +27,19 @@
     width: 1px !important;
 }
 
+/* Ensure choices items inherit the dark/light mode text color correctly */
 .choices__item {
-    color: black;
+    color: inherit;
+}
+.choices__list--dropdown .choices__item {
+    color: #1a1a1a;
+}
+.choices__list--dropdown {
+    background-color: #fff; /* Keep dropdown white so text is legible in 7.2.4 */
+}
+.choices__inner {
+    background-color: var(--bg-color, #fff);
+    border: 1px solid var(--border-color, #ccc);
 }
 
 .label-injector-notes {

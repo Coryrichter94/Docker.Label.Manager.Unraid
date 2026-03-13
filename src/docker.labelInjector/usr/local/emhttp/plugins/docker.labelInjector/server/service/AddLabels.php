@@ -46,13 +46,36 @@ foreach ($containerNames as $containerName) {
         $changes = ["<p>Actioning {$templatePath}</p>"];
         $old_template_xml = $template_xml->asXML();
 
+        // Extract first container port for replacement
+        $containerPort = "";
+        $portNodes = $template_xml->xpath("//Config[@Type='Port']");
+        if ($portNodes && count($portNodes) > 0) {
+            // We want the internal port (Target) primarily for proxies
+            $containerPort = (string)$portNodes[0]['Target'];
+            if (empty($containerPort)) {
+                $portVal = (string)$portNodes[0];
+                $portDefault = (string)$portNodes[0]['Default'];
+                $containerPort = $portVal ?: $portDefault;
+            }
+        }
+
+        $containerNameLower = strtolower($containerName);
+
         foreach ($inputs as $input) {
             $label = $input->key;
             $value = $input->value;
+
+            // Perform replacements on key
             $label = str_replace("\${CONTAINER_NAME}", $containerName, $label);
+            $label = str_replace("\${CONTAINER_NAME_LOWER}", $containerNameLower, $label);
+            $label = str_replace("\${CONTAINER_PORT}", $containerPort, $label);
 
             $template_label = $template_xml->xpath("//Config[@Type='Label'][@Target='$label']");
+
+            // Perform replacements on value
             $value = str_replace("\${CONTAINER_NAME}", $containerName, $value);
+            $value = str_replace("\${CONTAINER_NAME_LOWER}", $containerNameLower, $value);
+            $value = str_replace("\${CONTAINER_PORT}", $containerPort, $value);
 
             if ($template_label) {
                 if (!$value) {
