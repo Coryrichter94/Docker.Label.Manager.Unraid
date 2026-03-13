@@ -19,11 +19,19 @@ If you enter a value of `REMOVE` it will instead remove the label if found.
 
 Special flags include:
 
-* will be replace with the magic value works with both key and value
+These will be replaced with the magic values (works with both key and value):
 
 * `${CONTAINER_NAME}`
+* `${CONTAINER_NAME_LOWER}` (lowercase name)
+* `${CONTAINER_PORT}` (auto-detects the first internal port configured in the container)
+
+### Presets
+Out of the box, the plugin provides default configurations to quickly configure your containers for:
+* **Nginx Proxy Manager Plus (NPM)**
+* **Homepage**
+* **AutoKuma**
 
 Before it updates it will backup the template being used just incase something does go wrong.
 ![form](images/form.png)
 
-If you find this happen you should be able to restore the backup via `/boot/config/plugins/dockerMan/templates-user/my-TEMPLATE_NAME.DATE.bak`
+If you find this happen you should be able to restore the backup directly via the **Undo / Restore** button next to the "Add Labels" button, or manually via `/boot/config/plugins/dockerMan/templates-user/my-TEMPLATE_NAME.DATE.bak`.

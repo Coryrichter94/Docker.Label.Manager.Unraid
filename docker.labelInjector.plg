@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/LabelInjector">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/&name;.plg">
-<!ENTITY version "2025.10.31">
+<!ENTITY version "2025.03.13">
 <!ENTITY md5 "ef99b86730bf2cb3ebaae5e92be44661">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="7.2.0">
     <CHANGES>
+###2025.03.13
+- Fix dark mode styling issues in Unraid 7.2.4
+- Added default auto-injected presets for NPM Plus, Homepage, and AutoKuma
+- Added new variables: `${CONTAINER_NAME_LOWER}` and `${CONTAINER_PORT}`
+- Added Undo / Restore option to restore from template backups directly via the UI
+
 ###2025.10.31
 - adjust styling to support 7.2 UI Changes
 
