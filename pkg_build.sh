@@ -1,16 +1,11 @@
 #!/bin/bash
 
-plugin_name="docker.labelInjector"
+plugin_name="docker.labelManager"
 CWD=$(pwd)
 tmpdir="$CWD/tmp/tmp.$(($RANDOM * 19318203981230 + 40))"
-version=$(date +"%Y.%m.%d")
+version="1.0.5"
 filename="$CWD/archive/$plugin_name-$version.txz"
-rm "$filename"
-dayversion=$(ls "$CWD"/archive/$plugin_name-"$version"*.txz 2>/dev/null | wc -l)
-
-if [ "$dayversion" -gt 0 ]; then
-    filename=$CWD/archive/$plugin_name-$version.$dayversion.txz
-fi
+rm -f "$filename"
 mkdir -p "$tmpdir"
 
 rsync -av --progress src/$plugin_name/ "$tmpdir" --exclude .git --exclude tmp --exclude .env --exclude archive

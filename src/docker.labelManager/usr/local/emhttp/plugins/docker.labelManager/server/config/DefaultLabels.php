@@ -4,7 +4,7 @@ namespace DockerInjector\Config;
 
 class DefaultLabels
 {
-    public const CONFIG_PATH = "/boot/config/docker.labelInjector";
+    public const CONFIG_PATH = "/boot/config/docker.labelManager";
     public const LABELS_PATH = self::CONFIG_PATH . "/labels.json";
     public const QUOTE_REPLACER = "\`";
 

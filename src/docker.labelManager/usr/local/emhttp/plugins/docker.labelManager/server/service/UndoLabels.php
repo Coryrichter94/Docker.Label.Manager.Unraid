@@ -1,6 +1,6 @@
 <?php
-$configDir = "/boot/config/plugins/docker.labelInjector";
-$sourceDir = "/usr/local/emhttp/plugins/docker.labelInjector";
+$configDir = "/boot/config/plugins/docker.labelManager";
+$sourceDir = "/usr/local/emhttp/plugins/docker.labelManager";
 $documentRoot = $_SERVER['DOCUMENT_ROOT'] ?? '/usr/local/emhttp';
 require_once("$documentRoot/plugins/dynamix.docker.manager/include/DockerClient.php");
 require_once("$documentRoot/webGui/include/Helpers.php");

@@ -1,0 +1,22 @@
+Menu="Utilities"
+Title="docker.labelManager"
+Icon="icon.png"
+Markdown="false"
+---
+<?
+    $documentRoot = $_SERVER['DOCUMENT_ROOT'] ?? '/usr/local/emhttp';
+?>
+
+<link type="text/css" rel="stylesheet" href="<?autov("/plugins/docker.labelManager/styles/choices.min.css")?>">
+<link type="text/css" rel="stylesheet" href="<?autov("/plugins/docker.labelManager/styles/styles.css")?>">
+
+<script defer src="<?autov('/plugins/docker.labelManager/scripts/choices.min.js')?>"></script>
+<script defer src="<?autov('/plugins/docker.labelManager/scripts/dropdown.js')?>"></script>
+<script defer src="<?autov('/plugins/docker.labelManager/scripts/config.js')?>"></script>
+
+<?
+    require_once("$documentRoot/plugins/docker.labelManager/server/config/DefaultLabels.php");
+    use DockerInjector\Config\DefaultLabels;
+
+    DefaultLabels::generateForm();
+?>
