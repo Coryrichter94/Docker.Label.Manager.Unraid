@@ -3,7 +3,7 @@
 plugin_name="docker.labelManager"
 CWD=$(pwd)
 tmpdir="$CWD/tmp/tmp.$(($RANDOM * 19318203981230 + 40))"
-version="1.0.5"
+version="1.0.7"
 filename="$CWD/archive/$plugin_name-$version.txz"
 rm -f "$filename"
 mkdir -p "$tmpdir"

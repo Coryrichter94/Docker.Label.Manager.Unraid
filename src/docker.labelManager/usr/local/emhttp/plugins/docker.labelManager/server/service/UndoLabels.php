@@ -11,26 +11,36 @@ $action = $data['action'] ?? '';
 
 if ($action === 'list') {
     $dockerTemplates = new DockerTemplates();
-    $backups = [];
+    $runs = [];
     foreach ($dockerTemplates->getTemplates('user') as $file) {
         $path = $file['path'];
-        $dir = dirname($path);
         $base = basename($path);
 
         $files = glob(dirname($path) . "/*.bak");
         foreach ($files as $f) {
             $bname = basename($f);
             if (str_starts_with($bname, $base)) {
-                $backups[] = [
-                    'file' => $f,
-                    'container' => str_replace('my-', '', explode('.', $base)[0]),
-                    'date' => filemtime($f)
-                ];
+                // Extract Run ID from filename e.g. my-app.2023.10.25.12.30.00.bak -> 2023.10.25.12.30.00
+                preg_match('/\.(\d{4}\.\d{2}\.\d{2}\.\d{2}\.\d{2}\.\d{2})\.bak$/', $f, $matches);
+                if (isset($matches[1])) {
+                    $runId = $matches[1];
+                    if (!isset($runs[$runId])) {
+                        $runs[$runId] = [
+                            'runId' => $runId,
+                            'date' => filemtime($f),
+                            'containerCount' => 0,
+                            'files' => []
+                        ];
+                    }
+                    $runs[$runId]['containerCount']++;
+                    $runs[$runId]['files'][] = $f;
+                }
             }
         }
     }
 
-    // Sort by date descending
+    // Convert to flat array and sort by date descending
+    $backups = array_values($runs);
     usort($backups, function($a, $b) {
         return $b['date'] - $a['date'];
     });
@@ -40,24 +50,35 @@ if ($action === 'list') {
 }
 
 if ($action === 'restore') {
-    $file = $data['file'] ?? '';
-    if (!$file || !file_exists($file) || !str_ends_with($file, '.bak')) {
-        echo json_encode(["success" => false, "message" => "Invalid backup file"]);
+    $runId = $data['runId'] ?? '';
+    if (!$runId) {
+        echo json_encode(["success" => false, "message" => "Invalid run ID"]);
         exit;
     }
 
-    $target = preg_replace('/\.\d{4}\.\d{2}\.\d{2}\.\d{2}\.\d{1,2}\.\d{2}\.bak$/', '', $file);
-    if (!file_exists($target)) {
-        echo json_encode(["success" => false, "message" => "Target template file not found"]);
-        exit;
+    $dockerTemplates = new DockerTemplates();
+    $restoredCount = 0;
+
+    foreach ($dockerTemplates->getTemplates('user') as $file) {
+        $path = $file['path'];
+        $base = basename($path);
+
+        // Find backup for this specific run ID
+        $backupFile = $path . "." . $runId . ".bak";
+
+        if (file_exists($backupFile)) {
+            // Restore it
+            copy($backupFile, $path);
+            $restoredCount++;
+        }
     }
 
-    // Restore
-    copy($file, $target);
-    // Optionally delete the backup after restore
-    // unlink($file);
+    if ($restoredCount > 0) {
+        echo json_encode(["success" => true, "message" => "Restored $restoredCount container(s) to previous state."]);
+    } else {
+        echo json_encode(["success" => false, "message" => "No backups found for this run ID."]);
+    }
 
-    echo json_encode(["success" => true, "message" => "Restored $target"]);
     exit;
 }
 
