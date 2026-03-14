@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
     <!ENTITY name "docker.labelManager">
 <!ENTITY author "Coryrichter94">
-<!ENTITY repo "Unraid-docker-labels-">
-<!ENTITY branch "unraid-7-2-updates-11470694000344569938">
+<!ENTITY repo "Docker.Label.Manager.Unraid">
+<!ENTITY branch "main">
 <!ENTITY github "&author;/&repo;">
 <!ENTITY launch "Settings/LabelManager">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
