@@ -29,44 +29,47 @@
 
 /* Sleek Choices UI Overhaul */
 .choices__inner {
-    background-color: var(--bg-color, #232323);
-    border: 1px solid var(--border-color, #444);
-    border-radius: 6px;
-    padding: 6px 10px;
-    min-height: 44px;
-    color: var(--text-color, #e0e0e0);
+    background-color: #232323 !important;
+    border: 1px solid #444 !important;
+    border-radius: 6px !important;
+    padding: 6px 10px !important;
+    min-height: 44px !important;
+    color: #e0e0e0 !important;
 }
 .choices__input {
     background-color: transparent !important;
-    color: var(--text-color, #e0e0e0) !important;
+    color: #e0e0e0 !important;
 }
 .choices__list--dropdown {
-    background-color: var(--bg-color, #2a2a2a);
-    border: 1px solid var(--border-color, #444);
-    border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    z-index: 9999;
+    background-color: #2a2a2a !important;
+    border: 1px solid #444 !important;
+    border-radius: 6px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+    z-index: 9999 !important;
 }
 .choices__list--dropdown .choices__item {
-    color: var(--text-color, #e0e0e0);
-    padding: 8px 12px;
+    color: #e0e0e0 !important;
+    padding: 8px 12px !important;
+}
+.choices__list--dropdown .choices__item--selectable::after {
+    color: #888 !important;
 }
 .choices__list--dropdown .choices__item--selectable.is-highlighted {
-    background-color: #ff8c00; /* Unraid native accent orange */
-    color: #fff;
+    background-color: #ff8c00 !important; /* Unraid native accent orange */
+    color: #fff !important;
 }
 .choices__list--multiple .choices__item {
-    background-color: #ff8c00; /* Accent color for selected pills */
-    border: 1px solid #cc7000;
-    color: #fff;
-    border-radius: 4px;
-    padding: 3px 8px;
+    background-color: #ff8c00 !important; /* Accent color for selected pills */
+    border: 1px solid #cc7000 !important;
+    color: #fff !important;
+    border-radius: 4px !important;
+    padding: 3px 8px !important;
 }
 .choices__item.is-highlighted {
     background-color: #cc7000 !important;
 }
 .choices[data-type*="select-multiple"] .choices__button {
-    border-left: 1px solid rgba(255, 255, 255, 0.3);
+    border-left: 1px solid rgba(255, 255, 255, 0.3) !important;
 }
 
 .label-injector-notes {
@@ -127,6 +130,26 @@
     content: "";
     clear: both;
     display: table;
+}
+
+.label-injector-preview {
+    text-align: left !important;
+    background-color: #111;
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 10px 15px;
+    margin-top: 15px;
+    color: #42C0FB;
+    font-family: monospace;
+    font-size: 13px;
+    min-height: 40px;
+    overflow-x: auto;
+}
+.label-injector-preview-title {
+    color: #ff8c00;
+    font-weight: bold;
+    margin-top: 20px;
+    text-align: left;
 }
 
 .docker-label-updates {

@@ -174,21 +174,56 @@ function labelForm() {
                 <select id="label-injector-labels" name="labels" class="label-injector-select" multiple required ></select>
                 <button type="button" class="btn-remove-all" id="remove-all-label-injector-labels">Remove All Labels</button>
             </div>
+
+            <div class="label-injector-preview-title">Live Preview (First Selected Container):</div>
+            <div class="label-injector-preview" id="label-injector-preview-box">
+                No containers or labels selected.
+            </div>
         </form>
         `)
     generateLabelsSelect();
     generateContainersSelect();
 
     $(".sa-confirm-button-container button").prop("disabled", true)
-    const valueChecker = function () {
-        if ($("#label-injector-containers").val() && $("#label-injector-labels").val()) {
-            $(".sa-confirm-button-container button").prop("disabled", false)
+
+    const updatePreview = function () {
+        const containers = $("#label-injector-containers").val();
+        const labels = $("#label-injector-labels").val();
+
+        const previewBox = $("#label-injector-preview-box");
+
+        if (containers && containers.length > 0 && labels && labels.length > 0) {
+            $(".sa-confirm-button-container button").prop("disabled", false);
+
+            // Get the first selected container (ignore 'all' for preview logic)
+            let previewContainer = containers.find(c => c !== 'all');
+            if (!previewContainer) {
+                // If they ONLY selected 'all' and there are containers, pick the first actual container
+                previewContainer = docker.length > 0 ? docker[0].name : "example_container";
+            }
+
+            const lowerName = previewContainer.toLowerCase();
+            const fakePort = "8080"; // Mock port for frontend preview
+
+            let previewText = "";
+            labels.forEach(label => {
+                let replaced = label;
+                // Use proper string replace, removing the triple slash regex bug
+                replaced = replaced.replace(/\$\{CONTAINER_NAME\}/g, previewContainer);
+                replaced = replaced.replace(/\$\{CONTAINER_NAME_LOWER\}/g, lowerName);
+                replaced = replaced.replace(/\$\{CONTAINER_PORT\}/g, fakePort);
+                previewText += replaced + "\\n";
+            });
+
+            previewBox.html(previewText.replace(/\\n/g, "<br>"));
         } else {
-            $(".sa-confirm-button-container button").prop("disabled", true)
+            $(".sa-confirm-button-container button").prop("disabled", true);
+            previewBox.html("No containers or labels selected.");
         }
     }
-    $("#label-injector-containers").on('change', valueChecker);
-    $("#label-injector-labels").on('change', valueChecker);
+
+    $("#label-injector-containers").on('change', updatePreview);
+    $("#label-injector-labels").on('change', updatePreview);
 }
 
 function generateLabelsSelect() {
