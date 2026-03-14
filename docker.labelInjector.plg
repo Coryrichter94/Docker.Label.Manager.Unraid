@@ -14,11 +14,15 @@
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="7.2.0">
     <CHANGES>
-###2026.03.13
+###2026.03.14
 - Fix dark mode styling issues in Unraid 7.2.4
 - Added default auto-injected presets for NPM Plus, Homepage, and AutoKuma
 - Added new variables: `${CONTAINER_NAME_LOWER}` and `${CONTAINER_PORT}`
 - Added Undo / Restore option to restore from template backups directly via the UI
+- Complete UI layout overhaul with Live Preview functionality
+
+###2026.03.13
+- Fix dark mode styling issues in Unraid 7.2.4
 
 ###2025.10.31
 - adjust styling to support 7.2 UI Changes
