@@ -6,7 +6,7 @@ $(document).ready(function () {
 function undoLabelsPopup() {
     // Fetch list of backups first to avoid async UI updates in swal
     $('div.spinner.fixed').show();
-    $.post("/plugins/docker.labelInjector/server/service/UndoLabels.php", { data: JSON.stringify({ action: 'list' }) }, function (res) {
+    $.post("/plugins/docker.labelManager/server/service/UndoLabels.php", { data: JSON.stringify({ action: 'list' }) }, function (res) {
         $('div.spinner.fixed').hide();
         let backupsHtml = `
             <div class="label-injector-form-group" style="text-align:left;">
@@ -42,7 +42,7 @@ function undoLabelsPopup() {
                 const selectedBackup = $('#label-injector-backups').val();
                 if (selectedBackup && selectedBackup !== '') {
                     $('div.spinner.fixed').show();
-                    $.post("/plugins/docker.labelInjector/server/service/UndoLabels.php", { data: JSON.stringify({ action: 'restore', file: selectedBackup }) }, function (resRestore) {
+                    $.post("/plugins/docker.labelManager/server/service/UndoLabels.php", { data: JSON.stringify({ action: 'restore', file: selectedBackup }) }, function (resRestore) {
                         $('div.spinner.fixed').hide();
                         try {
                             let dataRestore = JSON.parse(resRestore);
@@ -102,7 +102,7 @@ function addLabels() {
 
     if (labels.length > 0 && containers.length > 0) {
         $('div.spinner.fixed').show();
-        $.post("/plugins/docker.labelInjector/server/service/AddLabels.php", { data: JSON.stringify({ labels, containers }) }, function (data) {
+        $.post("/plugins/docker.labelManager/server/service/AddLabels.php", { data: JSON.stringify({ labels, containers }) }, function (data) {
             $('div.spinner.fixed').hide();
             data = JSON.parse(data)
             const hasUpdates = data.containers.length > 0

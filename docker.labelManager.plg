@@ -1,20 +1,22 @@
 <?xml version="1.0" standalone="yes"?>
 <!DOCTYPE PLUGIN [
-    <!ENTITY name "docker.labelInjector">
+    <!ENTITY name "docker.labelManager">
 <!ENTITY author "Coryrichter94">
 <!ENTITY repo "Unraid-docker-labels-">
 <!ENTITY branch "unraid-7-2-updates-11470694000344569938">
 <!ENTITY github "&author;/&repo;">
-<!ENTITY launch "Settings/LabelInjector">
+<!ENTITY launch "Settings/LabelManager">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/&branch;/&name;.plg">
-<!ENTITY version "2026.03.14">
-<!ENTITY md5 "e9ffc279748e19e3ce393c9d625a21c1">
+<!ENTITY version "1.0.5">
+<!ENTITY md5 "f43e6934ff9df5877306fd312a08d964">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="7.2.0">
     <CHANGES>
-###2026.03.14
+###1.0.5
+- Renamed plugin to Docker Label Manager.
+- Switched to semantic versioning.
 - Fix dark mode styling issues in Unraid 7.2.4
 - Added default auto-injected presets for NPM Plus, Homepage, and AutoKuma
 - Added new variables: `${CONTAINER_NAME_LOWER}` and `${CONTAINER_PORT}`
