@@ -148,30 +148,45 @@ function addLabels() {
 function labelForm() {
     $('#label-injector-form').html(`
         <form id="label-injector-form" class="label-injector-form">
-            <div class="label-injector-form-group">
+            <div class="label-injector-form-group clearfix">
                 <p>Choose containers to add labels to</p>
                 <select id="label-injector-containers" name="containers" class="label-injector-select" multiple id="label-injector-containers" required></select>
-                <button id="remove-all-label-injector-containers">Remove All</button>
+                <button type="button" class="btn-remove-all" id="remove-all-label-injector-containers">Remove All Selected</button>
             </div>
-            <div class="label-injector-form-group">
-                <div class="label-injector-notes">
-                    <h3> Note:</h3>
-                    <ul class="list">
-                        <li>Type and press enter to save a label, separate label from value via '='</li>
-                        <li>When empty values are provided the label will be removed or ignored if not found</li>
-                        <li>Existing tags will be replaced</li>
-                        <li>Spaces will be replaced with a -</li>
-                        <li>To use quotes in an options use and escaped backtick \\\` Otherwise the option fails to save</li>
-                    </ul>
-                    <h3>The following special values are available replacement of values or keys:</h3>
-                    <ul class="list">
-                        <li>\${CONTAINER_NAME} - i.e 'LABEL_A=\${CONTAINER_NAME}.domain.com' -> 'LABEL_A=container_A.domain.com'</li>
-                        <li>\${CONTAINER_NAME_LOWER} - Lowercase container name</li>
-                        <li>\${CONTAINER_PORT} - Primary internal port</li>
-                    </ul>
+            <div class="label-injector-notes">
+                <h3>Notes & Special Values</h3>
+                <ul class="list">
+                    <li>Type and press enter to save a label. Separate label from value via '='</li>
+                    <li>Empty values will remove the label (or ignore it if not found)</li>
+                    <li>Existing tags will be replaced</li>
+                    <li>Spaces will be replaced with a '-'</li>
+                    <li>To use quotes in an option, use an escaped backtick (\\\`). Otherwise the option fails to save</li>
+                </ul>
+                <h3 style="margin-top: 10px;">Available Variables:</h3>
+                <ul class="list">
+                    <li><code>\${CONTAINER_NAME}</code> - i.e. <i>'LABEL_A=\${CONTAINER_NAME}.domain.com' -> 'LABEL_A=container_A.domain.com'</i></li>
+                    <li><code>\${CONTAINER_NAME_LOWER}</code> - Lowercase container name</li>
+                    <li><code>\${CONTAINER_PORT}</code> - Primary internal port</li>
+                </ul>
+            </div>
+            <div class="label-injector-notes">
+                <h3>Quick Add Presets</h3>
+                <div class="label-injector-preset-buttons">
+                    <button type="button" class="btn-preset" onclick="addNpmPlusPreset()">NPM Plus</button>
+                    <button type="button" class="btn-preset" onclick="addHomepagePreset()">Homepage</button>
+                    <button type="button" class="btn-preset" onclick="addUptimeKumaPreset()">Uptime Kuma</button>
                 </div>
+            </div>
+
+            <div class="label-injector-form-group clearfix">
+                <p>Labels to Inject</p>
                 <select id="label-injector-labels" name="labels" class="label-injector-select" multiple required ></select>
-                <button id="remove-all-label-injector-labels">Remove All</button>
+                <button type="button" class="btn-remove-all" id="remove-all-label-injector-labels">Remove All Labels</button>
+            </div>
+
+            <div class="label-injector-preview-title">Live Preview (First Selected Container):</div>
+            <div class="label-injector-preview" id="label-injector-preview-box">
+                No containers or labels selected.
             </div>
         </form>
         `)
@@ -179,15 +194,150 @@ function labelForm() {
     generateContainersSelect();
 
     $(".sa-confirm-button-container button").prop("disabled", true)
-    const valueChecker = function () {
-        if ($("#label-injector-containers").val() && $("#label-injector-labels").val()) {
-            $(".sa-confirm-button-container button").prop("disabled", false)
+
+    const updatePreview = function () {
+        const containers = $("#label-injector-containers").val();
+        const labels = $("#label-injector-labels").val();
+
+        const previewBox = $("#label-injector-preview-box");
+
+        if (containers && containers.length > 0 && labels && labels.length > 0) {
+            $(".sa-confirm-button-container button").prop("disabled", false);
+
+            // Get the first selected container (ignore 'all' for preview logic)
+            let previewContainer = containers.find(c => c !== 'all');
+            if (!previewContainer) {
+                // If they ONLY selected 'all' and there are containers, pick the first actual container
+                previewContainer = docker.length > 0 ? docker[0].name : "example_container";
+            }
+
+            const lowerName = previewContainer.toLowerCase();
+            const fakePort = "8080"; // Mock port for frontend preview
+
+            let previewText = "";
+            labels.forEach(label => {
+                let replaced = label;
+                // Use proper string replace, removing the triple slash regex bug
+                replaced = replaced.replace(/\$\{CONTAINER_NAME\}/g, previewContainer);
+                replaced = replaced.replace(/\$\{CONTAINER_NAME_LOWER\}/g, lowerName);
+                replaced = replaced.replace(/\$\{CONTAINER_PORT\}/g, fakePort);
+                previewText += replaced + "\\n";
+            });
+
+            previewBox.html(previewText.replace(/\\n/g, "<br>"));
         } else {
-            $(".sa-confirm-button-container button").prop("disabled", true)
+            $(".sa-confirm-button-container button").prop("disabled", true);
+            previewBox.html("No containers or labels selected.");
         }
     }
-    $("#label-injector-containers").on('change', valueChecker);
-    $("#label-injector-labels").on('change', valueChecker);
+
+    $("#label-injector-containers").on('change', updatePreview);
+    $("#label-injector-labels").on('change', updatePreview);
+
+    // Delegate hover event for choice items
+    $(document).on('mouseenter', '.choices__item[data-value]', function() {
+        const rawLabel = $(this).attr('data-value');
+        if (!rawLabel) return;
+
+        const containers = $("#label-injector-containers").val();
+        let previewContainer = "example_container";
+        if (containers && containers.length > 0) {
+            previewContainer = containers.find(c => c !== 'all') || (docker.length > 0 ? docker[0].name : "example_container");
+        }
+
+        const lowerName = previewContainer.toLowerCase();
+        const fakePort = "8080";
+
+        let replaced = rawLabel;
+        replaced = replaced.replace(/\$\{CONTAINER_NAME\}/g, previewContainer);
+        replaced = replaced.replace(/\$\{CONTAINER_NAME_LOWER\}/g, lowerName);
+        replaced = replaced.replace(/\$\{CONTAINER_PORT\}/g, fakePort);
+
+        // Use standard browser tooltip title logic
+        $(this).attr('title', `Preview: ${replaced}`);
+    });
+}
+
+function getActiveChoicesInstance() {
+    return document.getElementById('label-injector-labels')?.closest('.choices')?.querySelector('select')?.choicesInstance;
+}
+
+function addLabelToChoices(labelStr) {
+    const el = document.getElementById('label-injector-labels');
+    if (!el || !el.choicesInstance) return;
+
+    // Create new choice
+    el.choicesInstance.setChoices([
+        { value: labelStr, label: labelStr, selected: true, disabled: false }
+    ], 'value', 'label', false);
+
+    // Trigger the change event so the live preview updates
+    $(el).trigger('change');
+}
+
+function addNpmPlusPreset() {
+    swal({
+        title: "NPM Plus",
+        text: "Enter your domain suffix (e.g. .internal or .ranch):",
+        type: "input",
+        showCancelButton: true,
+        closeOnConfirm: true,
+        animation: "slide-from-top",
+        inputPlaceholder: ".internal",
+        inputValue: ".internal"
+    }, function(inputValue){
+        if (inputValue === false) return false;
+        if (inputValue === "") inputValue = ".internal";
+
+        addLabelToChoices(`npm.proxy.host=\${CONTAINER_NAME_LOWER}${inputValue}`);
+        addLabelToChoices(`npm.proxy.port=\${CONTAINER_PORT}`);
+    });
+}
+
+function addHomepagePreset() {
+    swal({
+        title: "Homepage Preset Config",
+        text: `
+            <div style="text-align: left; margin-top: 10px;">
+                <label style="display: block; margin-bottom: 5px;">Domain Suffix:</label>
+                <input type="text" id="hp-domain" class="sweet-alert-custom-input" value=".internal" style="width: 100%; padding: 8px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #ccc; color: #333;" />
+                <label style="display: block; margin-bottom: 5px;">Group Name:</label>
+                <input type="text" id="hp-group" class="sweet-alert-custom-input" value="Media" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; color: #333;" />
+            </div>
+        `,
+        html: true,
+        showCancelButton: true,
+        closeOnConfirm: true
+    }, function(isConfirm) {
+        if (!isConfirm) return;
+
+        let domain = document.getElementById('hp-domain').value || ".internal";
+        let group = document.getElementById('hp-group').value || "Media";
+
+        addLabelToChoices(`homepage.group=${group}`);
+        addLabelToChoices(`homepage.name=\${CONTAINER_NAME}`);
+        addLabelToChoices(`homepage.icon=\${CONTAINER_NAME_LOWER}.png`);
+        addLabelToChoices(`homepage.href=http://\${CONTAINER_NAME_LOWER}${domain}`);
+    });
+}
+
+function addUptimeKumaPreset() {
+    swal({
+        title: "Uptime Kuma",
+        text: "Enter your domain suffix (e.g. .internal or .ranch):",
+        type: "input",
+        showCancelButton: true,
+        closeOnConfirm: true,
+        animation: "slide-from-top",
+        inputPlaceholder: ".internal",
+        inputValue: ".internal"
+    }, function(inputValue){
+        if (inputValue === false) return false;
+        if (inputValue === "") inputValue = ".internal";
+
+        addLabelToChoices(`kuma.\${CONTAINER_NAME_LOWER}.http.name=\${CONTAINER_NAME}`);
+        addLabelToChoices(`kuma.\${CONTAINER_NAME_LOWER}.http.url=http://\${CONTAINER_NAME_LOWER}${inputValue}`);
+    });
 }
 
 function generateLabelsSelect() {
