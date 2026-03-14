@@ -8,12 +8,21 @@
 <!ENTITY launch "Settings/LabelManager">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/&branch;/&name;.plg">
-<!ENTITY version "1.0.5">
-<!ENTITY md5 "f43e6934ff9df5877306fd312a08d964">
+<!ENTITY version "1.0.7">
+<!ENTITY md5 "4a940109f5cbb96ed42ace21f63c94a2">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="7.2.0">
     <CHANGES>
+###1.0.7
+- Version bump to merge 1.0.5 UI overhauls with 1.0.6 PR features
+
+###1.0.6
+- Major improvements to presets including inline config UI and Dark Mode input styling
+- Replaced multiple modal popups with inline tray to avoid closing the form
+- Added new Unraid magic variables (`${APP_NAME}`, `${UNRAID_LOCAL_IP}`, `${HOST_PORT}`, `${UNRAID_CATEGORY}`, `${BASE_DOMAIN}`)
+- Added Bulk Undo functionality (Undo a batch of container label changes at once based on run ID)
+
 ###1.0.5
 - Renamed plugin to Docker Label Manager.
 - Switched to semantic versioning.
