@@ -19,7 +19,7 @@ function undoLabelsPopup() {
             if (data.backups && data.backups.length > 0) {
                 data.backups.forEach(b => {
                     let date = new Date(b.date * 1000).toLocaleString();
-                    backupsHtml += `<option value="${b.file}">${b.container} - ${date}</option>`;
+                    backupsHtml += `<option value="${b.runId}">Run ID: ${b.runId} (${b.containerCount} Containers) - ${date}</option>`;
                 });
             } else {
                 backupsHtml += `<option value="" disabled>No backups found</option>`;
@@ -39,15 +39,15 @@ function undoLabelsPopup() {
             allowOutsideClick: true
         }, function (isConfirm) {
             if (isConfirm) {
-                const selectedBackup = $('#label-injector-backups').val();
-                if (selectedBackup && selectedBackup !== '') {
+                const selectedRunId = $('#label-injector-backups').val();
+                if (selectedRunId && selectedRunId !== '') {
                     $('div.spinner.fixed').show();
-                    $.post("/plugins/docker.labelManager/server/service/UndoLabels.php", { data: JSON.stringify({ action: 'restore', file: selectedBackup }) }, function (resRestore) {
+                    $.post("/plugins/docker.labelManager/server/service/UndoLabels.php", { data: JSON.stringify({ action: 'restore', runId: selectedRunId }) }, function (resRestore) {
                         $('div.spinner.fixed').hide();
                         try {
                             let dataRestore = JSON.parse(resRestore);
                             if (dataRestore.success) {
-                                swal("Success!", "Backup restored successfully.", "success");
+                                swal("Success!", dataRestore.message || "Backup restored successfully.", "success");
                             } else {
                                 swal("Error", dataRestore.message || "Failed to restore backup", "error");
                             }
@@ -164,17 +164,30 @@ function labelForm() {
                 </ul>
                 <h3 style="margin-top: 10px;">Available Variables:</h3>
                 <ul class="list">
-                    <li><code>\${CONTAINER_NAME}</code> - i.e. <i>'LABEL_A=\${CONTAINER_NAME}.domain.com' -> 'LABEL_A=container_A.domain.com'</i></li>
-                    <li><code>\${CONTAINER_NAME_LOWER}</code> - Lowercase container name</li>
-                    <li><code>\${CONTAINER_PORT}</code> - Primary internal port</li>
+                    <li><code>\${APP_NAME}</code> - Standard Unraid template display name</li>
+                    <li><code>\${APP_NAME_LOWERCASE}</code> - Lowercase template name</li>
+                    <li><code>\${INTERNAL_CONTAINER_PORT}</code> - Primary internal target port</li>
+                    <li><code>\${HOST_PORT}</code> - Primary external host port</li>
+                    <li><code>\${UNRAID_LOCAL_IP}</code> - Unraid local IP address</li>
+                    <li><code>\${UNRAID_CATEGORY}</code> - Category defined in Unraid template</li>
+                    <li><code>\${BASE_DOMAIN}</code> - Extracts Domain from Unraid Settings</li>
                 </ul>
             </div>
-            <div class="label-injector-notes">
+            <div class="label-injector-notes" style="position: relative;">
                 <h3>Quick Add Presets</h3>
-                <div class="label-injector-preset-buttons">
-                    <button type="button" class="btn-preset" onclick="addNpmPlusPreset()">NPM Plus</button>
-                    <button type="button" class="btn-preset" onclick="addHomepagePreset()">Homepage</button>
-                    <button type="button" class="btn-preset" onclick="addUptimeKumaPreset()">Uptime Kuma</button>
+                <div class="label-injector-preset-buttons" style="margin-bottom: 10px;">
+                    <button type="button" class="btn-preset" onclick="showPresetConfig('npm')">NPM Plus</button>
+                    <button type="button" class="btn-preset" onclick="showPresetConfig('homepage')">Homepage</button>
+                    <button type="button" class="btn-preset" onclick="showPresetConfig('kuma')">Uptime Kuma</button>
+                </div>
+                <!-- Inline Config UI (Hidden by default) -->
+                <div id="inline-preset-config" style="display:none; background: #232323; padding: 15px; border-radius: 6px; border: 1px solid #444; margin-top: 10px; text-align: left;">
+                    <h4 id="inline-preset-title" style="margin-top:0; color: #fff;">Preset Config</h4>
+                    <div id="inline-preset-inputs"></div>
+                    <div style="margin-top: 15px; text-align: right;">
+                        <button type="button" class="btn-remove-all" onclick="$('#inline-preset-config').hide();" style="padding: 5px 10px; margin-right: 5px;">Cancel</button>
+                        <button type="button" class="btn-preset" onclick="applyPresetConfig()" style="padding: 5px 15px;">Add Labels</button>
+                    </div>
                 </div>
             </div>
 
@@ -217,10 +230,13 @@ function labelForm() {
             let previewText = "";
             labels.forEach(label => {
                 let replaced = label;
-                // Use proper string replace, removing the triple slash regex bug
-                replaced = replaced.replace(/\$\{CONTAINER_NAME\}/g, previewContainer);
-                replaced = replaced.replace(/\$\{CONTAINER_NAME_LOWER\}/g, lowerName);
-                replaced = replaced.replace(/\$\{CONTAINER_PORT\}/g, fakePort);
+                replaced = replaced.replace(/\$\{APP_NAME\}/g, previewContainer);
+                replaced = replaced.replace(/\$\{APP_NAME_LOWERCASE\}/g, lowerName);
+                replaced = replaced.replace(/\$\{INTERNAL_CONTAINER_PORT\}/g, fakePort);
+                replaced = replaced.replace(/\$\{HOST_PORT\}/g, "8080");
+                replaced = replaced.replace(/\$\{UNRAID_LOCAL_IP\}/g, "192.168.1.100");
+                replaced = replaced.replace(/\$\{UNRAID_CATEGORY\}/g, "Apps");
+                replaced = replaced.replace(/\$\{BASE_DOMAIN\}/g, "internal");
                 previewText += replaced + "\\n";
             });
 
@@ -249,9 +265,13 @@ function labelForm() {
         const fakePort = "8080";
 
         let replaced = rawLabel;
-        replaced = replaced.replace(/\$\{CONTAINER_NAME\}/g, previewContainer);
-        replaced = replaced.replace(/\$\{CONTAINER_NAME_LOWER\}/g, lowerName);
-        replaced = replaced.replace(/\$\{CONTAINER_PORT\}/g, fakePort);
+        replaced = replaced.replace(/\$\{APP_NAME\}/g, previewContainer);
+        replaced = replaced.replace(/\$\{APP_NAME_LOWERCASE\}/g, lowerName);
+        replaced = replaced.replace(/\$\{INTERNAL_CONTAINER_PORT\}/g, fakePort);
+        replaced = replaced.replace(/\$\{HOST_PORT\}/g, "8080");
+        replaced = replaced.replace(/\$\{UNRAID_LOCAL_IP\}/g, "192.168.1.100");
+        replaced = replaced.replace(/\$\{UNRAID_CATEGORY\}/g, "Apps");
+        replaced = replaced.replace(/\$\{BASE_DOMAIN\}/g, "internal");
 
         // Use standard browser tooltip title logic
         $(this).attr('title', `Preview: ${replaced}`);
@@ -275,69 +295,70 @@ function addLabelToChoices(labelStr) {
     $(el).trigger('change');
 }
 
-function addNpmPlusPreset() {
-    swal({
-        title: "NPM Plus",
-        text: "Enter your domain suffix (e.g. .internal or .ranch):",
-        type: "input",
-        showCancelButton: true,
-        closeOnConfirm: true,
-        animation: "slide-from-top",
-        inputPlaceholder: ".internal",
-        inputValue: ".internal"
-    }, function(inputValue){
-        if (inputValue === false) return false;
-        if (inputValue === "") inputValue = ".internal";
+let activePreset = null;
 
-        addLabelToChoices(`npm.proxy.host=\${CONTAINER_NAME_LOWER}${inputValue}`);
-        addLabelToChoices(`npm.proxy.port=\${CONTAINER_PORT}`);
-    });
+function showPresetConfig(type) {
+    activePreset = type;
+    const configDiv = $('#inline-preset-config');
+    const inputsDiv = $('#inline-preset-inputs');
+    const title = $('#inline-preset-title');
+
+    // Default styling for dark mode inputs
+    const inputStyle = 'width: 100%; padding: 8px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #555; background: #333; color: #fff; box-sizing: border-box;';
+    const labelStyle = 'display: block; margin-bottom: 5px; color: #ccc; font-size: 13px;';
+
+    inputsDiv.empty();
+
+    if (type === 'npm') {
+        title.text('NPM Plus Config');
+        inputsDiv.html(`
+            <label style="${labelStyle}">Force SSL:</label>
+            <select id="preset-npm-ssl" style="${inputStyle}">
+                <option value="true">True (Enabled)</option>
+                <option value="false">False (Disabled)</option>
+            </select>
+        `);
+    } else if (type === 'homepage') {
+        title.text('Homepage Config');
+        inputsDiv.html(`
+            <label style="${labelStyle}">Group Name (Leave blank to map Unraid Category):</label>
+            <input type="text" id="preset-hp-group" style="${inputStyle}" placeholder="e.g., Media" />
+        `);
+    } else if (type === 'kuma') {
+        title.text('Uptime Kuma Config');
+        inputsDiv.html(`
+            <label style="${labelStyle}">Kuma Group Name (Parent Name):</label>
+            <input type="text" id="preset-kuma-group" style="${inputStyle}" value="Apps" />
+        `);
+    }
+
+    configDiv.show();
 }
 
-function addHomepagePreset() {
-    swal({
-        title: "Homepage Preset Config",
-        text: `
-            <div style="text-align: left; margin-top: 10px;">
-                <label style="display: block; margin-bottom: 5px;">Domain Suffix:</label>
-                <input type="text" id="hp-domain" class="sweet-alert-custom-input" value=".internal" style="width: 100%; padding: 8px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #ccc; color: #333;" />
-                <label style="display: block; margin-bottom: 5px;">Group Name:</label>
-                <input type="text" id="hp-group" class="sweet-alert-custom-input" value="Media" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; color: #333;" />
-            </div>
-        `,
-        html: true,
-        showCancelButton: true,
-        closeOnConfirm: true
-    }, function(isConfirm) {
-        if (!isConfirm) return;
+function applyPresetConfig() {
+    if (!activePreset) return;
 
-        let domain = document.getElementById('hp-domain').value || ".internal";
-        let group = document.getElementById('hp-group').value || "Media";
+    if (activePreset === 'npm') {
+        let ssl = $('#preset-npm-ssl').val();
+        addLabelToChoices(`npm.proxy.host=\${APP_NAME_LOWERCASE}.\${BASE_DOMAIN}`);
+        addLabelToChoices(`npm.proxy.port=\${INTERNAL_CONTAINER_PORT}`);
+        addLabelToChoices(`npm.proxy.ssl.force=${ssl}`);
+    } else if (activePreset === 'homepage') {
+        let group = $('#preset-hp-group').val().trim();
+        let targetGroup = group === "" ? "\\${UNRAID_CATEGORY}" : group;
+        addLabelToChoices(`homepage.group=${targetGroup}`);
+        addLabelToChoices(`homepage.name=\${APP_NAME}`);
+        addLabelToChoices(`homepage.icon=\${APP_NAME_LOWERCASE}.png`);
+        addLabelToChoices(`homepage.href=https://\${APP_NAME_LOWERCASE}.\${BASE_DOMAIN}`);
+    } else if (activePreset === 'kuma') {
+        let group = $('#preset-kuma-group').val().trim() || 'Apps';
+        addLabelToChoices(`kuma.\${APP_NAME_LOWERCASE}.name=\${APP_NAME}`);
+        addLabelToChoices(`kuma.\${APP_NAME_LOWERCASE}.url=http://\${UNRAID_LOCAL_IP}:\${HOST_PORT}`);
+        addLabelToChoices(`kuma.\${APP_NAME_LOWERCASE}.type=http`);
+        addLabelToChoices(`kuma.\${APP_NAME_LOWERCASE}.parent_name=${group}`);
+    }
 
-        addLabelToChoices(`homepage.group=${group}`);
-        addLabelToChoices(`homepage.name=\${CONTAINER_NAME}`);
-        addLabelToChoices(`homepage.icon=\${CONTAINER_NAME_LOWER}.png`);
-        addLabelToChoices(`homepage.href=http://\${CONTAINER_NAME_LOWER}${domain}`);
-    });
-}
-
-function addUptimeKumaPreset() {
-    swal({
-        title: "Uptime Kuma",
-        text: "Enter your domain suffix (e.g. .internal or .ranch):",
-        type: "input",
-        showCancelButton: true,
-        closeOnConfirm: true,
-        animation: "slide-from-top",
-        inputPlaceholder: ".internal",
-        inputValue: ".internal"
-    }, function(inputValue){
-        if (inputValue === false) return false;
-        if (inputValue === "") inputValue = ".internal";
-
-        addLabelToChoices(`kuma.\${CONTAINER_NAME_LOWER}.http.name=\${CONTAINER_NAME}`);
-        addLabelToChoices(`kuma.\${CONTAINER_NAME_LOWER}.http.url=http://\${CONTAINER_NAME_LOWER}${inputValue}`);
-    });
+    $('#inline-preset-config').hide();
 }
 
 function generateLabelsSelect() {
