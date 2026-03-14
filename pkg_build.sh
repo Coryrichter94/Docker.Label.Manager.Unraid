@@ -1,16 +1,11 @@
 #!/bin/bash
 
-plugin_name="docker.labelInjector"
+plugin_name="docker.labelManager"
 CWD=$(pwd)
 tmpdir="$CWD/tmp/tmp.$(($RANDOM * 19318203981230 + 40))"
-version=$(date +"%Y.%m.%d")
+version="1.0.6"
 filename="$CWD/archive/$plugin_name-$version.txz"
-rm "$filename"
-dayversion=$(ls "$CWD"/archive/$plugin_name-"$version"*.txz 2>/dev/null | wc -l)
-
-if [ "$dayversion" -gt 0 ]; then
-    filename=$CWD/archive/$plugin_name-$version.$dayversion.txz
-fi
+rm -f "$filename"
 mkdir -p "$tmpdir"
 
 rsync -av --progress src/$plugin_name/ "$tmpdir" --exclude .git --exclude tmp --exclude .env --exclude archive
@@ -40,7 +35,7 @@ sed "$sed_prefix" 's/<!ENTITY version ".*">/<!ENTITY version "'"$version"'">/' $
 sed "$sed_prefix" 's/<!ENTITY md5 ".*">/<!ENTITY md5 "'"$md5hash"'">/' $plugin_name.plg
 
 echo "MD5: $(md5sum "$filename")"
-echo "once pushed install via https://raw.githubusercontent.com/Coryrichter94/Unraid-docker-labels-/unraid-7-2-updates-11470694000344569938/$plugin_name.plg"
+echo "once pushed install via https://raw.githubusercontent.com/Coryrichter94/Docker.Label.Manager.Unraid/main/$plugin_name.plg"
 
 $tar_command -tvf "$filename"
 

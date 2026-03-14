@@ -1,6 +1,6 @@
 <?php
-$configDir = "/boot/config/plugins/docker.labelInjector";
-$sourceDir = "/usr/local/emhttp/plugins/docker.labelInjector";
+$configDir = "/boot/config/plugins/docker.labelManager";
+$sourceDir = "/usr/local/emhttp/plugins/docker.labelManager";
 $documentRoot = $_SERVER['DOCUMENT_ROOT'] ?? '/usr/local/emhttp';
 require_once("$documentRoot/plugins/dynamix.docker.manager/include/DockerClient.php");
 require_once("$documentRoot/webGui/include/Helpers.php");
@@ -35,6 +35,7 @@ function getUserTemplateInsensitive($Container)
 
 $updatedContainerNames = [];
 $updateSummaries = [];
+$runId = (new DateTime())->format('Y.m.d.H.i.s');
 
 foreach ($containerNames as $containerName) {
     $templatePath = getUserTemplateInsensitive($containerName);
@@ -46,36 +47,69 @@ foreach ($containerNames as $containerName) {
         $changes = ["<p>Actioning {$templatePath}</p>"];
         $old_template_xml = $template_xml->asXML();
 
+        // Extract category
+        $unraidCategory = (string)$template_xml->Category;
+        if (empty($unraidCategory)) $unraidCategory = "Apps";
+
         // Extract first container port for replacement
-        $containerPort = "";
+        $internalContainerPort = "";
+        $hostPort = "";
         $portNodes = $template_xml->xpath("//Config[@Type='Port']");
         if ($portNodes && count($portNodes) > 0) {
             // We want the internal port (Target) primarily for proxies
-            $containerPort = (string)$portNodes[0]['Target'];
-            if (empty($containerPort)) {
+            $internalContainerPort = (string)$portNodes[0]['Target'];
+            if (empty($internalContainerPort)) {
                 $portVal = (string)$portNodes[0];
                 $portDefault = (string)$portNodes[0]['Default'];
-                $containerPort = $portVal ?: $portDefault;
+                $internalContainerPort = $portVal ?: $portDefault;
+            }
+            // Host port
+            $hostPort = (string)$portNodes[0];
+            if (empty($hostPort)) {
+                $hostPort = (string)$portNodes[0]['Default'];
             }
         }
 
         $containerNameLower = strtolower($containerName);
+        $unraidLocalIp = $_SERVER['SERVER_ADDR'] ?? "127.0.0.1";
+        if (file_exists('/var/local/emhttp/var.ini')) {
+            $varIni = parse_ini_file('/var/local/emhttp/var.ini');
+            $unraidLocalIp = $varIni['IPADDR'] ?? $unraidLocalIp;
+        }
+
+        // base domain fallback extraction (from unraid config)
+        $baseDomain = "internal";
+        if (file_exists('/boot/config/ident.cfg')) {
+            $identCfg = parse_ini_file('/boot/config/ident.cfg');
+            if (!empty($identCfg['DOMAIN'])) {
+                $baseDomain = $identCfg['DOMAIN'];
+            }
+        }
 
         foreach ($inputs as $input) {
             $label = $input->key;
             $value = $input->value;
 
-            // Perform replacements on key
-            $label = str_replace("\${CONTAINER_NAME}", $containerName, $label);
-            $label = str_replace("\${CONTAINER_NAME_LOWER}", $containerNameLower, $label);
-            $label = str_replace("\${CONTAINER_PORT}", $containerPort, $label);
+            $replacements = [
+                "\${APP_NAME}" => $containerName,
+                "\${APP_NAME_LOWERCASE}" => $containerNameLower,
+                "\${INTERNAL_CONTAINER_PORT}" => $internalContainerPort,
+                "\${HOST_PORT}" => $hostPort,
+                "\${UNRAID_LOCAL_IP}" => $unraidLocalIp,
+                "\${UNRAID_CATEGORY}" => $unraidCategory,
+                "\${BASE_DOMAIN}" => $baseDomain,
+                "\${CONTAINER_NAME}" => $containerName, // Legacy
+                "\${CONTAINER_NAME_LOWER}" => $containerNameLower, // Legacy
+                "\${CONTAINER_PORT}" => $internalContainerPort // Legacy
+            ];
+
+            // Perform replacements on key and value
+            foreach ($replacements as $search => $replace) {
+                $label = str_replace($search, $replace, $label);
+                $value = str_replace($search, $replace, $value);
+            }
 
             $template_label = $template_xml->xpath("//Config[@Type='Label'][@Target='$label']");
-
-            // Perform replacements on value
-            $value = str_replace("\${CONTAINER_NAME}", $containerName, $value);
-            $value = str_replace("\${CONTAINER_NAME_LOWER}", $containerNameLower, $value);
-            $value = str_replace("\${CONTAINER_PORT}", $containerPort, $value);
 
             if ($template_label) {
                 if (!$value) {
@@ -107,8 +141,8 @@ foreach ($containerNames as $containerName) {
         }
 
         if ($changed) {
-            // Backup Juust incase
-            file_put_contents($templatePath . "." . (new DateTime())->format('Y.m.d.H.I.s') . ".bak", $old_template_xml);
+            // Backup with unified Run ID
+            file_put_contents($templatePath . "." . $runId . ".bak", $old_template_xml);
             file_put_contents($templatePath, $template_xml->asXML());
             $updatedContainerNames[] = $containerName;
             $updateSummaries[$containerName] = $changes;
